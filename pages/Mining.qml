@@ -74,7 +74,7 @@ Rectangle {
 
         MoneroComponents.TextPlain {
             id: soloMainLabel
-            text: qsTr("Mining with your computer helps strengthen the Monero network. The more people mine, the harder it is for the network to be attacked, and every little bit helps.\n\nMining also gives you a small chance to earn some Monero. Your computer will create hashes looking for block solutions. If you find a block, you will get the associated reward. Good luck!") + "\n\n" + qsTr("P2Pool mining is a decentralized way to pool mine that pays out more frequently compared to solo mining, while also supporting the network.") + translationManager.emptyString
+            text: qsTr("Mining with your computer helps strengthen the Aime network. The more people mine, the harder it is for the network to be attacked, and every little bit helps.\n\nMining also gives you a small chance to earn some Monero. Your computer will create hashes looking for block solutions. If you find a block, you will get the associated reward. Good luck!") + "\n\n" + qsTr("P2Pool mining is a decentralized way to pool mine that pays out more frequently compared to solo mining, while also supporting the network.") + translationManager.emptyString
             wrapMode: Text.Wrap
             Layout.fillWidth: true
             font.family: MoneroComponents.Style.fontRegular.name
@@ -450,7 +450,7 @@ Rectangle {
                     text: "
                     Usage:<br>
                         --wallet              Wallet address to mine to. Subaddresses and integrated addresses are not supported!<br>
-                        --host                IP address of your Monero node, default is 127.0.0.1<br>
+                        --host                IP address of your Aime node, default is 127.0.0.1<br>
                         --rpc-port            monerod RPC API port number, default is 18081<br>
                         --zmq-port            monerod ZMQ pub port number, default is 18083 (same port as in monerod\'s \"--zmq-pub\" command line parameter)<br>
                         --stratum             Comma-separated list of IP:port for stratum server to listen on<br>
@@ -482,8 +482,8 @@ Rectangle {
                         --version             Print p2pool's version and build details<br>
                         --tls-cert file       Load TLS certificate chain from \"file\" in the PEM format<br>
                         --tls-cert-key file   Load TLS certificate private key from \"file\" in the PEM format<br>
-                        --rpc-ssl             Enable SSL on RPC connections to the Monero node<br>
-                        --rpc-ssl-fingerprint base64-encoded fingerprint of the Monero node's certificate (optional, use it for certificate pinning)<br>
+                        --rpc-ssl             Enable SSL on RPC connections to the Aime node<br>
+                        --rpc-ssl-fingerprint base64-encoded fingerprint of the Aime node's certificate (optional, use it for certificate pinning)<br>
                         --no-stratum-http     Disable HTTP on Stratum ports<br>
                         --help                Show this help message
                     "

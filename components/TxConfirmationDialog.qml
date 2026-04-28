@@ -309,7 +309,7 @@ Rectangle {
                             if (addressBookName) {
                                 title = FontAwesome.addressBook + " " + Utils.htmlEscape(addressBookName);
                             } else {
-                                title = qsTr("Monero address") + translationManager.emptyString;
+                                title = qsTr("Aime address") + translationManager.emptyString;
                             }
                             if (recipients.length > 1) {
                                 title = "%1. %2 - %3 XMR".arg(index + 1).arg(title).arg(recipient.amount);
