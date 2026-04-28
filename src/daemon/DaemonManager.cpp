@@ -187,9 +187,9 @@ bool DaemonManager::stopWatcher(NetworkType::Type nettype, const QString &dataDi
             if(counter >= 5) {
                 qDebug() << "Killing it! ";
 #ifdef Q_OS_WIN
-                QProcess::execute("taskkill",  {"/F", "/IM", "monerod.exe"});
+                QProcess::execute("taskkill",  {"/F", "/IM", "aimed.exe"});
 #else
-                QProcess::execute("pkill", {"monerod"});
+                QProcess::execute("pkill", {"aimed"});
 #endif
             }
 
@@ -358,7 +358,7 @@ QString DaemonManager::getArgs(const QString &dataDir) {
 
     #elif defined(Q_OS_UNIX)
         //pgrep
-        tempArgs << "monerod";
+        tempArgs << "aimed";
         p.setProgram("pgrep");
         p.setArguments(tempArgs);
         p.start();
@@ -397,11 +397,11 @@ DaemonManager::DaemonManager(QObject *parent)
     , m_scheduler(this)
 {
 
-    // Platform depetent path to monerod
+    // Aime: use aimed binary
 #ifdef Q_OS_WIN
-    m_monerod = QApplication::applicationDirPath() + "/monerod.exe";
+    m_monerod = QApplication::applicationDirPath() + "/aimed.exe";
 #elif defined(Q_OS_UNIX)
-    m_monerod = QApplication::applicationDirPath() + "/monerod";
+    m_monerod = QApplication::applicationDirPath() + "/aimed";
 #endif
 
     if (m_monerod.length() == 0) {
