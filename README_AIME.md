@@ -3,6 +3,9 @@
 > Qt-based graphical wallet for Aime, forked from [monero-project/monero-gui](https://github.com/monero-project/monero-gui).
 > Bundles patched Aime source as the libwallet backend.
 
+**Maintained by:** Kiwoong Eom (eric.eom@gmail.com) — GitHub [@kiwoongeom](https://github.com/kiwoongeom)
+**Companion project:** [aime-core](https://github.com/kiwoongeom/aime-core) (the daemon)
+
 ---
 
 ## Features
