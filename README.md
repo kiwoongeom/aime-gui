@@ -8,6 +8,7 @@
 
 ---
 
+> 🚀 **New here?** Start with the [Aime Getting Started Guide](https://github.com/kiwoongeom/aime-core/blob/main/GETTING_STARTED.md) — step-by-step instructions for the whole project (mining, node, wallet, all 4 components).
 ## Features
 
 - Create / restore wallets (25-word seed)
