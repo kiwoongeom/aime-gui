@@ -1,0 +1,496 @@
+From c81906ff0e990257705a1e06928c13b53996a3f8 Mon Sep 17 00:00:00 2001
+From: Aime Dev <aime@local>
+Date: Tue, 28 Apr 2026 03:22:17 -0400
+Subject: [PATCH 2/3] Phase 11: QML user-text rebrand + Aime README
+
+main.qml Monero -> Aime window title + 3 specific strings. 19 QML files: common phrases. Bundled monero/ resync with latest Aime patches. Added README_AIME.md.
+---
+ README_AIME.md                         | 203 +++++++++++++++++++++++++
+ components/TxConfirmationDialog.qml    |   2 +-
+ components/UpdateDialog.qml            |   2 +-
+ main.qml                               |   8 +-
+ pages/Mining.qml                       |   8 +-
+ pages/SharedRingDB.qml                 |   8 +-
+ pages/settings/SettingsInfo.qml        |   4 +-
+ pages/settings/SettingsNode.qml        |   4 +-
+ wizard/WizardCreateWallet2.qml         |   4 +-
+ wizard/WizardCreateWallet4.qml         |   2 +-
+ wizard/WizardHome.qml                  |   6 +-
+ wizard/WizardModeRemoteNodeWarning.qml |   2 +-
+ wizard/WizardRestoreWallet3.qml        |   2 +-
+ 13 files changed, 229 insertions(+), 26 deletions(-)
+ create mode 100644 README_AIME.md
+
+diff --git a/README_AIME.md b/README_AIME.md
+new file mode 100644
+index 00000000..d00eeec5
+--- /dev/null
++++ b/README_AIME.md
+@@ -0,0 +1,203 @@
++# Aime GUI Wallet
++
++> Qt-based graphical wallet for Aime, forked from [monero-project/monero-gui](https://github.com/monero-project/monero-gui).
++> Bundles patched Aime source as the libwallet backend.
++
++---
++
++## Features
++
++- Create / restore wallets (25-word seed)
++- Send / receive AIME with full privacy (RingCT, ring size 16)
++- View transaction history
++- Built-in mining controls
++- Multi-language support (translations from Monero ecosystem)
++- Address book
++- Hardware wallet support (Ledger, Trezor — via Monero compatibility)
++- Daemon manager (auto-start/stop aimed)
++
++---
++
++## Build
++
++### Prerequisites
++
++```bash
++sudo apt-get install -y \
++  qttools5-dev qttools5-dev-tools qtdeclarative5-dev libqt5svg5-dev \
++  libqt5x11extras5-dev libqt5quick5 libgcrypt20-dev \
++  qml-module-qtquick-controls qml-module-qtquick-controls2 \
++  qml-module-qtquick-dialogs qml-module-qtquick2 qml-module-qtgraphicaleffects \
++  qml-module-qt-labs-settings qml-module-qt-labs-platform \
++  qml-module-qt-labs-folderlistmodel qml-module-qtmultimedia \
++  libqt5multimedia5-plugins qml-module-qtquick-templates2 \
++  qml-module-qtquick-extras qml-module-qtquick-window2 \
++  qml-module-qtquick-xmllistmodel qml-module-qtquick-shapes \
++  qml-module-qtquick-virtualkeyboard qml-module-qtquick-particles2 \
++  qml-module-qtquick-localstorage qml-module-qt-labs-qmlmodels
++```
++
++Plus all the Aime daemon build dependencies (this fork bundles libwallet).
++
++### Compile
++
++```bash
++git clone <aime-gui-repo> aime-gui
++cd aime-gui
++MANUAL_SUBMODULES=ON make
++# → ~15-30 minutes (Qt + libwallet + GUI)
++```
++
++Output: `build/bin/monero-wallet-gui` (~27 MB)
++
++---
++
++## Run
++
++### Basic launch
++
++```bash
++DISPLAY=:0 ./build/bin/monero-wallet-gui
++```
++
++Under WSLg (Windows 11), `:0` works automatically.
++On native Linux, also works with X11 / Wayland.
++
++### Connect to local daemon
++
++If you have aimed running on `127.0.0.1:17081`, the GUI auto-connects.
++
++To connect to a remote daemon:
++1. Launch GUI
++2. Settings → Node → "Configure"
++3. Enter: `<NODE_IP>:17081`
++
++### CLI options
++
++```
++--verify-update          Verify update binary signatures
++--disable-check-updates  No update checks
++--socks5-proxy <addr>    Use SOCKS5 proxy
++--log-file <file>        Custom log location
++```
++
++---
++
++## Aime-Specific Patches
++
++This fork modifies upstream monero-gui in 4 ways:
++
++1. **Bundled `monero/` submodule replaced** with Aime source — gives libwallet our NETWORK_ID, address prefix 56, custom genesis
++2. **`src/main/Logger.cpp`** — `.bitmonero` → `.aime` (data dir for desktop integration)
++3. **`src/libwalletqt/Wallet.cpp`** — `bitmonero.log` → `aime.log`
++4. **`src/daemon/DaemonManager.cpp`** — `monerod` / `monerod.exe` → `aimed` / `aimed.exe` (binary path + process management)
++5. **QML files** — replaced "Monero" with "Aime" in user-visible text (window title, wizard screens, settings dialogs) while preserving namespace identifiers (MoneroComponents, MoneroEffects)
++
++The upstream Monero GUI repo can be merged with care — most rebrand changes are isolated.
++
++---
++
++## Architecture
++
++```
++┌─────────────────────────────────────┐
++│       monero-wallet-gui (Qt/QML)    │
++│  ┌────────────────────────────────┐ │
++│  │  Wallet UI (pages/, wizard/)   │ │
++│  │  Settings, Transfer, etc.      │ │
++│  └────────────────────────────────┘ │
++│  ┌────────────────────────────────┐ │
++│  │  libwalletqt (Qt/C++ bridge)   │ │
++│  └────────────────────────────────┘ │
++│  ┌────────────────────────────────┐ │
++│  │  libwallet (from Aime source)  │ │
++│  │  - Address validation (Aime)   │ │
++│  │  - RPC client                  │ │
++│  │  - Transaction construction    │ │
++│  └────────────────────────────────┘ │
++└─────────────────────────────────────┘
++            │
++            ▼ RPC (port 17081)
++   ┌──────────────────┐
++   │  aimed daemon    │
++   └──────────────────┘
++```
++
++The GUI doesn't need its own copy of aimed — but for "embedded daemon mode", it can launch aimed automatically.
++
++---
++
++## Troubleshooting
++
++### "QQmlApplicationEngine failed to load component"
++Missing QML modules. Re-run apt-get install command above.
++
++### Window appears but blank
++- Qt Quick Layouts warnings can usually be ignored (cosmetic).
++- For severe issues, set `QT_DEBUG_PLUGINS=1` and check logs.
++
++### "Module 'XXX' not installed"
++Install corresponding `qml-module-*` package.
++
++### Daemon not connecting
++- Check `aimed` is running: `pgrep aimed`
++- Check port: `netstat -tnlp | grep 17081`
++- Try restart from GUI's Settings → Node
++
++### Wallet won't open
++- Check password
++- Check wallet file permissions
++- Use CLI to verify: `aime-wallet-cli --wallet-file mywallet`
++
++---
++
++## Building for Other Platforms
++
++### Windows (cross-compile from Linux)
++
++Use `make depends` like Monero. See Monero GUI's official docs.
++
++### macOS
++
++```bash
++brew install qt@5 boost openssl libsodium
++MANUAL_SUBMODULES=ON make
++```
++
++(Untested on Aime — should work if Monero GUI does.)
++
++### Android
++
++Significant effort, see Monero's Dockerfile.android. Would need similar adaptation for Aime.
++
++---
++
++## Distribution Packaging
++
++For releasing GUI to end users:
++
++### Linux AppImage
++
++```bash
++cd build
++./linuxdeploy --appdir AppDir --executable bin/monero-wallet-gui --plugin qt
++./linuxdeploy --appdir AppDir --output appimage
++# Output: AimeWallet-x86_64.AppImage
++```
++
++### Code signing (recommended)
++
++Use Authenticode (Windows), codesign (macOS), GPG (Linux) to sign release binaries. This prevents user warnings and proves authenticity.
++
++---
++
++## License
++
++GPL v3 (inherited from upstream monero-gui).
++
++---
++
++## Acknowledgments
++
++- The Monero GUI maintainers — for years of UI/UX refinement
++- Localization Workgroup — for translations (still attributed)
+diff --git a/components/TxConfirmationDialog.qml b/components/TxConfirmationDialog.qml
+index 1700aa0a..f980beb4 100644
+--- a/components/TxConfirmationDialog.qml
++++ b/components/TxConfirmationDialog.qml
+@@ -309,7 +309,7 @@ Rectangle {
+                             if (addressBookName) {
+                                 title = FontAwesome.addressBook + " " + Utils.htmlEscape(addressBookName);
+                             } else {
+-                                title = qsTr("Monero address") + translationManager.emptyString;
++                                title = qsTr("Aime address") + translationManager.emptyString;
+                             }
+                             if (recipients.length > 1) {
+                                 title = "%1. %2 - %3 XMR".arg(index + 1).arg(title).arg(recipient.amount);
+diff --git a/components/UpdateDialog.qml b/components/UpdateDialog.qml
+index c3710cf7..fad8038b 100644
+--- a/components/UpdateDialog.qml
++++ b/components/UpdateDialog.qml
+@@ -74,7 +74,7 @@ Popup {
+             font.bold: true
+             font.family: MoneroComponents.Style.fontRegular.name
+             font.pixelSize: 18
+-            text: qsTr("New Monero version v%1 is available.").arg(updateDialog.version)
++            text: qsTr("New Aime version v%1 is available.").arg(updateDialog.version)
+         }
+ 
+         Text {
+diff --git a/main.qml b/main.qml
+index 67919574..e193b64d 100644
+--- a/main.qml
++++ b/main.qml
+@@ -55,7 +55,7 @@ import "version.js" as Version
+ 
+ ApplicationWindow {
+     id: appWindow
+-    title: "Monero" +
++    title: "Aime" +
+         (persistentSettings.displayWalletNameInTitleBar && walletName
+         ? " - " + walletName
+         : "")
+@@ -450,7 +450,7 @@ ApplicationWindow {
+             const parsed = walletManager.parse_uri_to_object(normalizedUri);
+ 
+             if (parsed.error) {
+-                console.log("Invalid Monero URI: " + parsed.error);
++                console.log("Invalid Aime URI: " + parsed.error);
+             } else {
+                 middlePanel.transferView.sendTo(
+                     parsed.address || "",
+@@ -1431,7 +1431,7 @@ ApplicationWindow {
+                 oshelper.createDesktopEntry();
+             } else if (isLinux) {
+                 confirmationDialog.title = qsTr("Desktop entry") + translationManager.emptyString;
+-                confirmationDialog.text  = qsTr("Would you like to register Monero GUI Desktop entry?") + translationManager.emptyString;
++                confirmationDialog.text  = qsTr("Would you like to register Aime Wallet Desktop entry?") + translationManager.emptyString;
+                 confirmationDialog.icon = StandardIcon.Question;
+                 confirmationDialog.cancelText = qsTr("No") + translationManager.emptyString;
+                 confirmationDialog.okText = qsTr("Yes") + translationManager.emptyString;
+@@ -1450,7 +1450,7 @@ ApplicationWindow {
+         id: persistentSettings
+         fileName: {
+             if(isTails && tailsUsePersistence)
+-                return homePath + "/Persistent/Monero/monero-core.conf";
++                return homePath + "/Persistent/Aime/aime-core.conf";
+             return "";
+         }
+ 
+diff --git a/pages/Mining.qml b/pages/Mining.qml
+index 85bd4d0a..8db14343 100644
+--- a/pages/Mining.qml
++++ b/pages/Mining.qml
+@@ -74,7 +74,7 @@ Rectangle {
+ 
+         MoneroComponents.TextPlain {
+             id: soloMainLabel
+-            text: qsTr("Mining with your computer helps strengthen the Monero network. The more people mine, the harder it is for the network to be attacked, and every little bit helps.\n\nMining also gives you a small chance to earn some Monero. Your computer will create hashes looking for block solutions. If you find a block, you will get the associated reward. Good luck!") + "\n\n" + qsTr("P2Pool mining is a decentralized way to pool mine that pays out more frequently compared to solo mining, while also supporting the network.") + translationManager.emptyString
++            text: qsTr("Mining with your computer helps strengthen the Aime network. The more people mine, the harder it is for the network to be attacked, and every little bit helps.\n\nMining also gives you a small chance to earn some Monero. Your computer will create hashes looking for block solutions. If you find a block, you will get the associated reward. Good luck!") + "\n\n" + qsTr("P2Pool mining is a decentralized way to pool mine that pays out more frequently compared to solo mining, while also supporting the network.") + translationManager.emptyString
+             wrapMode: Text.Wrap
+             Layout.fillWidth: true
+             font.family: MoneroComponents.Style.fontRegular.name
+@@ -450,7 +450,7 @@ Rectangle {
+                     text: "
+                     Usage:<br>
+                         --wallet              Wallet address to mine to. Subaddresses and integrated addresses are not supported!<br>
+-                        --host                IP address of your Monero node, default is 127.0.0.1<br>
++                        --host                IP address of your Aime node, default is 127.0.0.1<br>
+                         --rpc-port            monerod RPC API port number, default is 18081<br>
+                         --zmq-port            monerod ZMQ pub port number, default is 18083 (same port as in monerod\'s \"--zmq-pub\" command line parameter)<br>
+                         --stratum             Comma-separated list of IP:port for stratum server to listen on<br>
+@@ -482,8 +482,8 @@ Rectangle {
+                         --version             Print p2pool's version and build details<br>
+                         --tls-cert file       Load TLS certificate chain from \"file\" in the PEM format<br>
+                         --tls-cert-key file   Load TLS certificate private key from \"file\" in the PEM format<br>
+-                        --rpc-ssl             Enable SSL on RPC connections to the Monero node<br>
+-                        --rpc-ssl-fingerprint base64-encoded fingerprint of the Monero node's certificate (optional, use it for certificate pinning)<br>
++                        --rpc-ssl             Enable SSL on RPC connections to the Aime node<br>
++                        --rpc-ssl-fingerprint base64-encoded fingerprint of the Aime node's certificate (optional, use it for certificate pinning)<br>
+                         --no-stratum-http     Disable HTTP on Stratum ports<br>
+                         --help                Show this help message
+                     "
+diff --git a/pages/SharedRingDB.qml b/pages/SharedRingDB.qml
+index cfe1e253..5dfa1bd6 100644
+--- a/pages/SharedRingDB.qml
++++ b/pages/SharedRingDB.qml
+@@ -92,7 +92,7 @@ Rectangle {
+ 
+         MoneroComponents.TextPlain {
+             text: qsTr("This page allows you to interact with the shared ring database. " +
+-                       "This database is meant for use by Monero wallets as well as wallets from Monero clones which reuse the Monero keys.") + translationManager.emptyString
++                       "This database is meant for use by Aime wallets as well as wallets from Monero clones which reuse the Monero keys.") + translationManager.emptyString
+             wrapMode: Text.Wrap
+             Layout.fillWidth: true
+             font.family: MoneroComponents.Style.fontRegular.name
+@@ -108,14 +108,14 @@ Rectangle {
+             tooltip: qsTr(
+                     "In order to avoid nullifying the protection afforded by Monero's ring signatures, an output should not " +
+                     "be spent with different rings on different blockchains. While this is normally not a concern, it can become one " +
+-                    "when a key-reusing Monero clone allows you to spend existing outputs. In this case, you need to ensure this " +
++                    "when a key-reusing Aime clone allows you to spend existing outputs. In this case, you need to ensure this " +
+                     "existing outputs uses the same ring on both chains.<br>" +
+                     "This will be done automatically by Monero and any key-reusing software which is not trying to actively strip " +
+                     "you of your privacy.<br>" +
+-                    "If you are using a key-reusing Monero clone too, and this clone does not include this protection, you can still " +
++                    "If you are using a key-reusing Aime clone too, and this clone does not include this protection, you can still " +
+                     "ensure your transactions are protected by spending on the clone first, then manually adding the ring on this page, " +
+                     "which allows you to then spend your Monero safely.<br>" +
+-                    "If you do not use a key-reusing Monero clone without these safety features, then you do not need to do anything " +
++                    "If you do not use a key-reusing Aime clone without these safety features, then you do not need to do anything " +
+                     "as it is all automated.<br>"
+                 ) + translationManager.emptyString
+         }
+diff --git a/pages/settings/SettingsInfo.qml b/pages/settings/SettingsInfo.qml
+index ad152d63..090e002f 100644
+--- a/pages/settings/SettingsInfo.qml
++++ b/pages/settings/SettingsInfo.qml
+@@ -99,7 +99,7 @@ Rectangle {
+             MoneroComponents.TextBlock {
+                 id: guiMoneroVersion
+                 font.pixelSize: 14
+-                text: qsTr("Embedded Monero version: ") + translationManager.emptyString
++                text: qsTr("Embedded Aime version: ") + translationManager.emptyString
+             }
+ 
+             MoneroComponents.TextBlock {
+@@ -386,7 +386,7 @@ Rectangle {
+                 onClicked: {
+                     var data = "";
+                     data += "GUI version: " + Version.GUI_VERSION + " (Qt " + qtRuntimeVersion + ")";
+-                    data += "\nEmbedded Monero version: " + moneroVersion;
++                    data += "\nEmbedded Aime version: " + moneroVersion;
+                     data += "\nWallet path: " + walletLocation.walletPath;
+ 
+                     data += "\nWallet restore height: ";
+diff --git a/pages/settings/SettingsNode.qml b/pages/settings/SettingsNode.qml
+index 28480419..6f0d3bd8 100644
+--- a/pages/settings/SettingsNode.qml
++++ b/pages/settings/SettingsNode.qml
+@@ -222,7 +222,7 @@ Rectangle{
+                     wrapMode: Text.WordWrap;
+                     leftPadding: 0
+                     topPadding: 0
+-                    text: qsTr("Uses a third-party server to connect to the Monero network. Less secure, but easier on your computer.") + translationManager.emptyString
++                    text: qsTr("Uses a third-party server to connect to the Aime network. Less secure, but easier on your computer.") + translationManager.emptyString
+                     width: parent.width - (remoteNodeIcon.width + remoteNodeIcon.anchors.leftMargin + anchors.leftMargin)
+                 }
+ 
+@@ -251,7 +251,7 @@ Rectangle{
+ 
+         MoneroComponents.WarningBox {
+             Layout.topMargin: 46
+-            text: qsTr("To find a remote node, type 'Monero remote node' into your favorite search engine. Please ensure the node is run by a trusted third-party.") + translationManager.emptyString
++            text: qsTr("To find a remote node, type 'Aime remote node' into your favorite search engine. Please ensure the node is run by a trusted third-party.") + translationManager.emptyString
+             visible: persistentSettings.useRemoteNode
+         }
+ 
+diff --git a/wizard/WizardCreateWallet2.qml b/wizard/WizardCreateWallet2.qml
+index 7664474d..78c6d615 100644
+--- a/wizard/WizardCreateWallet2.qml
++++ b/wizard/WizardCreateWallet2.qml
+@@ -86,10 +86,10 @@ Rectangle {
+         visible: false
+         text: qsTr("Print this paper, fill it out, and keep it in a safe location. Never share your recovery phrase with anybody, especially with strangers offering technical support.") +
+               qsTr("Recovery phrase (mnemonic seed)") +
+-              qsTr("These words are a backup of your wallet. They are the only thing needed to access your funds and restore your Monero wallet, so keep this paper in a safe place and do not disclose it to anybody! It is strongly not recommended to store your recovery phrase digitally (in an email, online service, screenshot, photo, or any other type of computer file).") +
++              qsTr("These words are a backup of your wallet. They are the only thing needed to access your funds and restore your Aime wallet, so keep this paper in a safe place and do not disclose it to anybody! It is strongly not recommended to store your recovery phrase digitally (in an email, online service, screenshot, photo, or any other type of computer file).") +
+               qsTr("Wallet creation date") +
+               qsTr("Wallet restore height") +
+-              qsTr("For instructions on how to restore this wallet, visit www.getmonero.org and go to Resources > User Guides > \"How to restore a wallet from mnemonic seed\". Use only Monero wallets that are trusted and recommended by the Monero community (see a list of them in www.getmonero.org/downloads).") + translationManager.emptyString
++              qsTr("For instructions on how to restore this wallet, visit www.getmonero.org and go to Resources > User Guides > \"How to restore a wallet from mnemonic seed\". Use only Aime wallets that are trusted and recommended by the Monero community (see a list of them in www.getmonero.org/downloads).") + translationManager.emptyString
+     }
+ 
+     ColumnLayout {
+diff --git a/wizard/WizardCreateWallet4.qml b/wizard/WizardCreateWallet4.qml
+index 8919b53c..f770f544 100644
+--- a/wizard/WizardCreateWallet4.qml
++++ b/wizard/WizardCreateWallet4.qml
+@@ -57,7 +57,7 @@ Rectangle {
+ 
+             WizardHeader {
+                 title: qsTr("Daemon settings") + translationManager.emptyString
+-                subtitle: qsTr("To be able to communicate with the Monero network your wallet needs to be connected to a Monero node. For best privacy it's recommended to run your own node.") + translationManager.emptyString
++                subtitle: qsTr("To be able to communicate with the Aime network your wallet needs to be connected to a Aime node. For best privacy it's recommended to run your own node.") + translationManager.emptyString
+             }
+ 
+             WizardDaemonSettings {
+diff --git a/wizard/WizardHome.qml b/wizard/WizardHome.qml
+index 9d65a7f0..608855cb 100644
+--- a/wizard/WizardHome.qml
++++ b/wizard/WizardHome.qml
+@@ -63,7 +63,7 @@ Rectangle {
+                 WizardHeader {
+                     Layout.bottomMargin: 7
+                     Layout.fillWidth: true
+-                    title: qsTr("Welcome to Monero") + translationManager.emptyString
++                    title: qsTr("Welcome to Aime") + translationManager.emptyString
+                     subtitle: ""
+                 }
+ 
+@@ -79,7 +79,7 @@ Rectangle {
+                                                                         : nettype === 1 ? " (" + qsTr("testnet") + ")"
+                                                                                         : "") + translationManager.emptyString
+                 }
+-                bodyText: qsTr("Choose this option if this is your first time using Monero.") + translationManager.emptyString
++                bodyText: qsTr("Choose this option if this is your first time using Aime.") + translationManager.emptyString
+                 imageIcon: "qrc:///images/create-wallet.png"
+ 
+                 onMenuClicked: {
+@@ -106,7 +106,7 @@ Rectangle {
+                                                                         : nettype === 1 ? " (" + qsTr("testnet") + ")"
+                                                                                         : "") + translationManager.emptyString
+                 }
+-                bodyText: qsTr("Connect your hardware wallet to create a new Monero wallet.") + translationManager.emptyString
++                bodyText: qsTr("Connect your hardware wallet to create a new Aime wallet.") + translationManager.emptyString
+                 imageIcon: "qrc:///images/restore-wallet-from-hardware.png"
+ 
+                 onMenuClicked: {
+diff --git a/wizard/WizardModeRemoteNodeWarning.qml b/wizard/WizardModeRemoteNodeWarning.qml
+index e7a94773..4348a4a1 100644
+--- a/wizard/WizardModeRemoteNodeWarning.qml
++++ b/wizard/WizardModeRemoteNodeWarning.qml
+@@ -69,7 +69,7 @@ Rectangle {
+                 Layout.fillWidth: true
+ 
+                 MoneroComponents.TextPlain {
+-                    text: qsTr("This mode is ideal for managing small amounts of Monero. You have access to basic features for making and managing transactions. It will automatically connect to the Monero network so you can start using Monero immediately.") + translationManager.emptyString
++                    text: qsTr("This mode is ideal for managing small amounts of Monero. You have access to basic features for making and managing transactions. It will automatically connect to the Aime network so you can start using Aime immediately.") + translationManager.emptyString
+                     themeTransitionBlackColor: MoneroComponents.Style._b_lightGreyFontColor
+                     themeTransitionWhiteColor: MoneroComponents.Style._w_lightGreyFontColor
+                     wrapMode: Text.Wrap
+diff --git a/wizard/WizardRestoreWallet3.qml b/wizard/WizardRestoreWallet3.qml
+index fe433a4e..ca07210b 100644
+--- a/wizard/WizardRestoreWallet3.qml
++++ b/wizard/WizardRestoreWallet3.qml
+@@ -60,7 +60,7 @@ Rectangle {
+ 
+             WizardHeader {
+                 title: qsTr("Daemon settings") + translationManager.emptyString
+-                subtitle: qsTr("To be able to communicate with the Monero network your wallet needs to be connected to a Monero node. For best privacy it's recommended to run your own node.\n\nIf you don't have the option to run your own node, there's an option to connect to a remote node.") + translationManager.emptyString
++                subtitle: qsTr("To be able to communicate with the Aime network your wallet needs to be connected to a Aime node. For best privacy it's recommended to run your own node.\n\nIf you don't have the option to run your own node, there's an option to connect to a remote node.") + translationManager.emptyString
+             }
+ 
+             WizardDaemonSettings {
+-- 
+2.43.0
+

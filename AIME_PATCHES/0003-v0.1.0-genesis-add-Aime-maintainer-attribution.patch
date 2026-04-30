@@ -1,0 +1,26 @@
+From 95e850d5e8183c738afc185ad8f6fdd7b48c82dc Mon Sep 17 00:00:00 2001
+From: Kiwoong Eom <eric.eom@gmail.com>
+Date: Wed, 29 Apr 2026 19:55:22 -0400
+Subject: [PATCH 3/3] v0.1.0-genesis: add Aime maintainer attribution
+
+---
+ README_AIME.md | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/README_AIME.md b/README_AIME.md
+index d00eeec5..011860ed 100644
+--- a/README_AIME.md
++++ b/README_AIME.md
+@@ -3,6 +3,9 @@
+ > Qt-based graphical wallet for Aime, forked from [monero-project/monero-gui](https://github.com/monero-project/monero-gui).
+ > Bundles patched Aime source as the libwallet backend.
+ 
++**Maintained by:** Kiwoong Eom (eric.eom@gmail.com) — GitHub [@kiwoongeom](https://github.com/kiwoongeom)
++**Companion project:** [aime-core](https://github.com/kiwoongeom/aime-core) (the daemon)
++
+ ---
+ 
+ ## Features
+-- 
+2.43.0
+
